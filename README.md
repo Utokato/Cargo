@@ -39,5 +39,4 @@ This is a note hub for code
 
 
 ## Message Queue
-### JMS VS AMQP
 - [RabbitMQ 入门](./notes/rabbitmq/RabbitMQ-Notes.md)
