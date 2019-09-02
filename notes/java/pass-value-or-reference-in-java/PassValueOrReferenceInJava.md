@@ -13,11 +13,11 @@ public static void main(String[] args) {
 }
 ```
 
-虽然没有手动的使用 final 修饰 str 变量，但它确确实实是一个不能修改的变量，这是由于虚拟机进行了优化，可以让程序员不去使用 final 修饰该变量。但如果手动的去修改 str ，就会出现编译异常，详细内容是 `Variable used in lambda expression should be final or effectively final`，为什么会出现这个编译的异常？这是由于虚拟机为了保证 lambda 表达式中操作变量的安全性，如何来理解这个安全性呢？在深刻回答这个问题之前，不妨再来讨论一下 Java 中的数据类型和传值问题。
+虽然没有手动的使用 final 修饰 str 变量，但它确确实实是一个不能修改的变量，这是由于虚拟机进行了优化，可以让程序员不去使用 final 修饰该变量。但如果手动的去修改 str ，就会出现编译异常，详细内容是 `Variable used in lambda expression should be final or effectively final`，为什么会出现这个编译的异常？这是由于虚拟机为了保证 lambda 表达式中操作变量的安全性，如何来理解这个安全性呢？在深刻回答这个问题之前，不妨先来讨论一下 Java 中的数据类型和传值的问题。
 
-> 不止是 lambda 表达式中使用的变量需要是final修饰的，JDK8 以前的匿名内部类中使用的变量，也是需要final修饰的
+> 不止是 lambda 表达式中使用的变量需要是final修饰的，JDK8 以前的匿名内部类中使用的外部变量，也是需要final修饰的
 
-为了更加清楚的描述和解释这些问题，我将结合 C# 中相关的内容来一起说明。
+为了更加清楚的描述和解释这些问题，将结合 C# 中相关的内容来一起说明。
 
 
 
@@ -62,7 +62,7 @@ someMethod(1,"lma",obj);
 
 ![1567409688051](./imgs/1567409688051.png)
 
-在 C# 中是不仅可以传值，也传递引用，所以就表现出了上面的传参方式。
+在 C# 中是不仅可以传值，也可以传递引用，所以就表现出了上面的传参方式。
 
 ### 传值 方式
 
@@ -72,7 +72,7 @@ someMethod(1,"lma",obj);
 // 定义一个方法，形参是一个值类型
 static void ChangeNum(int inner)
 {
-     inner = inner + 1; // 形参的作用域仅仅在这个方法内部，当方法弹栈后，就失效了
+     inner = inner + 1; // 参数的作用域仅仅在这个方法内部，当方法弹栈后，就失效了
 }
 // 在main方法中调用
 static void Main(string[] args)
@@ -95,7 +95,7 @@ static void ChangeTeacher(Teacher t)
     t.Name = "t_inner_last";
     t.ID = 3001;
     // 由于在方法内部新建了一个对象，所有的操作都是基于方法体内部的新对象
-    // 所以内部的操作对方法外的对象是没有任何印象的
+    // 所以内部的操作对方法外的对象是没有任何影响的
 }
 // 在main方法中调用
 static void Main(string[] args)
@@ -155,7 +155,7 @@ static void Main(string[] args)
 }
 ```
 
-不是很好理解，为什么加上一个 ref 后，就真实地产生了副作用呢？再次通过模拟内存中方法调用的示意图来展示这个过程。
+不是很好理解，为什么加上一个 `ref` 后，就真实地产生了副作用呢？再次通过模拟内存中方法调用的示意图来展示这个过程。
 
 ![1567412475138](./imgs/1567412475138.png)
 
@@ -173,7 +173,7 @@ static void ChangeTeacher(ref Teacher t)
     t.Name = "t_inner_last";
     t.ID = 3001;
     // 由于在方法内部新建了一个对象，所有的操作都是基于方法体内部的新对象
-    // 所以内部的操作对方法外的对象是没有任何印象的
+    // 所以内部的操作对方法外的对象是没有任何影响的
 }
 // 在main方法中调用
 static void Main(string[] args)
@@ -248,19 +248,19 @@ public static void main(String[] args) {
 }
 ```
 
-如上面的代码中，首先创建了一个 `LocalDateTime` 的 list ，然后再 lambda 中添加具体的时间，如果修改这个 list为 `LinkedList` ，就会重新出现 `Variable used in lambda expression should be final or effectively final` 。出现这个异常是因为，虚拟机认为这样的操作是危险的，可能会出现问题。
+如上面的代码中，首先创建了一个 `LocalDateTime` 的 list ，然后在 lambda 中添加具体的时间，如果修改这个 list 为 `LinkedList` ，就会重新出现 `Variable used in lambda expression should be final or effectively final` 。出现这个异常是因为，虚拟机认为这样的操作是危险的，可能会出现问题。
 
 下面的描述可能有失偏颇，慎重理解。
 
-Java 虚拟机在执行代码顺序时，并不是所想象的那样去顺序执行，内部参杂着很多的即时优化，仅仅保证了最终的一致性，并不保证过程中的按部就班。以 `List<LocalDateTime> localDateTimes = new ArrayList<>();` 为例子，分为了三个动作：声明变量，新建 list 对象，建立变量与对象之间的引用关系，这三个动作的执行顺序并没有得到虚拟机的保证，如果此时执行 `localDateTimes = new LinkedList<>();` ，又包含了两个动作：新建对象，建立引用关系；接着就到了 lambda 表达式的内部，此时需要 `localDateTimes` 变量指向的实例对象来进行 `add` 操作，由于上面包含了**两个**建立引用关系的动作，真正 lambda 中使用的是哪一个列表实例，并不清晰，可能出现混乱。比如，向 lambda 中传递了 `ArrayList`，后面 `localDateTimes` 又指向了 `LinkedList`，导致在 lambda 中真实操作的对象可能不是我们预想的。
+Java 虚拟机在执行代码顺序时，并不是所想象的那样去顺序执行，内部参杂着很多的即时优化，仅仅保证了最终的一致性，并不保证过程中的按部就班。以 `List<LocalDateTime> localDateTimes = new ArrayList<>();` 为例子，分为了三个动作：声明变量，新建 list 对象，建立变量与对象之间的引用关系，这三个动作的执行顺序并没有得到虚拟机的保证，如果此时执行 `localDateTimes = new LinkedList<>();` ，又包含了两个动作：新建对象，建立引用关系；接着就到了 lambda 表达式的内部，此时需要 `localDateTimes` 变量指向的实例对象来进行 `add` 操作，由于上面包含了**两个**建立引用关系的动作，真正 lambda 中使用的是哪一个 list 实例，并不清晰，可能出现混乱。比如，向 lambda 中传递了 `ArrayList`，后面 `localDateTimes` 又指向了 `LinkedList`，导致在 lambda 中真实操作的对象可能不是我们预想的。
 
 ![1567417107723](./imgs/1567417107723.png)
 
-如果 Java 能传递引用，就可以有效的避免这个问题，如下图所示：
+如果 Java 能传递引用，就可以有效的规避这个问题，如下图所示：
 
 ![1567417324001](./imgs/1567417324001.png)
 
-Java 中的传参方式只能是传递，当变量为值类型时，传递的是栈内存中的变量直接包含的值；当变量为引用类型时，栈中的变量与堆中的实例之间建立了映射关系，真正传递的是，堆中实例对象的内存地址。基于这样的事实，以及虚拟机对于代码执行的优化，可能在一些情形下出现异常。所以为了解决这些问题，虚拟机之间在编译器就会报出这些错，提示程序员这样写不能保证正确性，需要修改编码的方式。
+Java 中的传参方式只能是传递，当变量为值类型时，传递的是栈内存中的变量直接包含的值；当变量为引用类型时，栈中的变量与堆中的实例之间建立了映射关系，真正传递的是，堆中实例对象的内存地址。基于这样的事实，以及虚拟机对于代码执行的优化，可能在一些情形下出现异常。所以为了解决这些问题，虚拟机直接在编译器就会报出这些错，提示程序员这样写不能保证正确性，需要修改编码的方式。
 
 > 对于最后面的解释，可能有失偏颇，需要继续学习 Java 语言层面和虚拟机层面的知识，才能对该知识点有更加深刻和正确的理解。
 

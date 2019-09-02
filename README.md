@@ -11,6 +11,8 @@ This is a note hub for code
 
 - [JDK8 新特性](./notes/jdk8-new-feature/jdk8-accidence.md)
 
+- [Java 中传值还是传引用 ?](./notes/java/pass-value-or-reference-in-java/PassValueOrReferenceInJava.md)
+
 
 
 ## Spring
