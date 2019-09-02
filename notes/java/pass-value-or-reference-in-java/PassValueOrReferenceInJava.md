@@ -27,7 +27,7 @@ public static void main(String[] args) {
 
 ## Java 中数据类型及派生体系
 
-![1567405245048](./imgs\1567405245048.png)
+![1567405245048](./imgs/1567405245048.png)
 
 
 
