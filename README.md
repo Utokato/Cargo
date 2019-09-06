@@ -16,7 +16,7 @@ This is a note hub for code
 
 
 ## Spring
-
+- [Spring 从 XML 配置到注解驱动](./notes/spring-framework-annotation/01-spring-framework-from-xml-to-annotation.md)
 
 
 
@@ -28,6 +28,7 @@ This is a note hub for code
 
 
 ## Mybatis
+- [Hello Mybatis](./notes/mybatis/01-mybatis-quick-start.md)
 
 
 
