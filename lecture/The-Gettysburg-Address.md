@@ -16,6 +16,6 @@ But, in a larger sense, we can not dedicate -- we can not consecrate -- we can n
 [The Gettysburg Address Video at Bilibili](https://www.bilibili.com/video/av17990091)
 
 
-![](./imgs/The Gettysburg Address.jpg)
+![](./imgs/The-Gettysburg-Address.jpg)
 
 
