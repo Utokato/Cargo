@@ -32,7 +32,10 @@ This is a note hub for code
 - [Hello Mybatis](./notes/mybatis/01-mybatis-quick-start.md)
 
 
-
+## Technology
+- Annotation or Attribute
+- Reflection
+- DI or IoC 
 
 
 
@@ -44,3 +47,8 @@ This is a note hub for code
 
 ## Message Queue
 - [RabbitMQ 入门](./notes/rabbitmq/RabbitMQ-Notes.md)
+
+## Vue
+- Vue 基础语法
+- Vue 组件化
+- Vue 模块化
