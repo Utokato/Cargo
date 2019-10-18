@@ -37,7 +37,8 @@ This is a note hub for code
 - Reflection
 - DI or IoC 
 
-
+## Goto Next
+- 超越框架
 
 
 ## Git & GitHub 
