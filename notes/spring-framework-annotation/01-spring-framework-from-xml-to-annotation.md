@@ -34,7 +34,7 @@ Spring提倡我们完全使用注解(annotation)来替代原来的xml配置文�
 </beans>
 ```
 
-上面是一个典型的Spring xml配置文件，引入了beans和context命名空间，如果需要其他的功能支持，如AOP、事务、安全等，可以再映入相应的命名空间。
+上面是一个典型的Spring xml配置文件，引入了beans和context命名空间，如果需要其他的功能支持，如AOP、事务、安全等，可以再引入相应的命名空间。
 
 在配置文件中，可以通过`<bean>`标签向Spring的容器中注册一个bean，可以使用context标签来指定关于Spring上下文的一些信息，当然还有更多复杂而详尽的配置，有需要的可以自行查询。
 
