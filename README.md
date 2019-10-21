@@ -25,7 +25,7 @@ This is a note hub for code
 
 - How does spring run?
 - How does spring boot fire?
-- [Spring run with or without external tomcat](./notes/spring-run-with-or-without-external-tomcat.md)
+- [Spring or spring boot run with or without external tomcat](./notes/spring-run-with-or-without-external-tomcat.md)
 
 
 
