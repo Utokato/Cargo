@@ -4,9 +4,9 @@
 
 > 一般而言，Java Web 应用程序需要一个 web.xml 文件，在这个文件中描述了当前 Web 应用部署的情况，如果这个 Web 应用不包含任何的 servlet、filter、listener 组件，即这是一个静态的 Web 应用，那么就可以不需要这个 web.xml 文件。换句话来说，只包含了静态文件的应用并不需要这个文件。
 
-> 如果是一个动态的 Web 应用呢？是否必须包含这个 web.xml 文件呢？答案是否定的。因为在 `servlet3.0`及其以后的规范中，引入了一个新的特性 --- 共享库/运行时的可插拔特性，基于这一新特性，再配合注解的方式，可以完全替代该  web.xml 配置文件。
+> 如果是一个动态的 Web 应用呢？是否必须包含这个 web.xml 文件呢？答案是否定的。因为在 `servlet3.0` 及其以后的规范中，引入了一个新的特性 --- 共享库/运行时的可插拔特性，基于这一新特性，再配合注解的方式，可以完全替代该 web.xml 配置文件。
 
-> 同时，如果 Java Web 应用被打成了一个 war 包，我们可以将该 war 包放置在一个外部的动态 Web 服务器中，如 Tomcat，随着 Tomcat 的启动，就可以访问该应用了。而 Spring boot 最终将应用打包为一个 jar 包，通过命令行的方式来启动该 Java Web 应用，那么此时的 Web 动态服务容器，就不是外部手动配置的容器了。那 Spring boot 又是如何处理 Web 的动态服务呢？其实是 Spring boot 内置了一个 Web 动态服务器，随着 Spring boot 的启动，也会初始化和运行该内嵌的服务器。那此时就存在着两个容器的启动顺序与激活过程。带着这样的思考，我们来考虑一下几个问题
+> 同时，如果 Java Web 应用被打成了一个 war 包，我们可以将该 war 包放置在一个外部的动态 Web 服务器中，如 Tomcat，随着 Tomcat 的启动，就可以访问该应用了。而 Spring boot 最终将应用打包为一个 jar 包，通过命令行的方式来启动该 Java Web 应用，那么此时的 Web 动态服务容器，就不是外部手动配置的容器了。那 Spring boot 又是如何处理 Web 的动态服务呢？其实是 Spring boot 内置了一个 Web 动态服务器，随着 Spring boot 的启动，也会初始化和运行该内嵌的服务器。那此时就存在着两个容器的启动顺序与激活过程，带着这样的思考，我们来考虑一下几个问题。
 
 
 
@@ -102,11 +102,56 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 
 ## Spring boot 激活内置的 Web 服务器
 
-Spring boot 以 jar 包的形式启动，在启动的过程中，激活 Web 服务器
+Spring boot 是基于 Spring framework 的一款快速开发框架，核心理念是约定大于配置，也就是说，以前我们进行的很多配置，在使用 Spring boot 后，会被框架所处理，即不需要我们显示的去配置，遵循框架的约定，就可以快速地开发一个服务。
+
+当我们使用了 Spring boot 后，可以将项目打成一个 jar 包，然后通过 Java 命令来启动一个服务，即使是一个 web 服务，也可以直接以 java -jar 的形式来启动，跳过了部署到外部 Tomcat 服务器的过程。但我们需要知道的是，基于 servlet 规范开发的 Java web 服务，是必须依赖于一个 servlet 容器，也就是 Tomcat 是必备的。那么 Spring boot 是如何处理简化这一过程的？Spring boot 中内嵌了一个 servlet 容器，当前支持 Tomcat、Jetty 和 Undertow，默认使用 Tomcat。当 Spring boot 推断出当前的项目是一个 web 工程(如何推断？判断当前的 Spring Context 中是否包含一个前端控制器，即：DispatcherServlet)时，在 Spring boot 启动过程中，会创建一个 servlet 容器的实例。
+
+在理解了相互的调用关系后，可以尝试深入 Spring boot 的世界，具体地来看看，一个 SpringApplication 是如何跑起来的。详细的文档，可以参看[《SpringApplication to Fire in detail》](./spring-application-to-fire-in-detail.pdf)。Spring boot 的 run() 方法使用了一个典型模板方法的设计模式，其中定义了SpringApplication 的运行步骤。在这些步骤中，有一个极其重要，refreshContext(context)，正是在这一步中，Spring boot 调用了 Spring framework 的 refresh() 方法。这个 refresh() 方法，又是一个重量级的方法，它定义了Spring容器的初始化和创建过程，关于这个有兴趣的可以参看 [《Spring 容器的初始化和创建过程》](./spring-container-initial-and-create.pdf)。
+
+在这个 refresh() 方法中，有如下一个 onRefresh() 方法，从注释文档中可以看出：它用于在特殊的上下文环境子类中初始化一些特殊的 Bean 。进入这个方法，会发现这是一个抽象方法，没有任何的实现，这意味着在一个普通的Spring环境中，这一步骤可以直接跳过，或者我们可以在这里定义一些逻辑。
+
+![1571711193435](./imgs/spring-on-refresh.png)
+
+但是，在一个 Spring 的 Web 环境中，有一个类实现了这个方法。从这个方法中，可以直接地看到了 createWebServer()，终于追到了尽头，正是在这个方法中，Spring 框架初始化了一个 Tomcat (或其他的内嵌Web容器)，并启动了 Tomcat。
+
+![1571711283188](./imgs/create-web-server.png)
+
+最后，再来重复考虑一下，调用顺序又是如何？Spring boot 驱动 Tomcat。
 
 
 
 ## Spring boot 在外部的 Web 服务器中运行
 
-Spring boot 项目打为war包，使用外部的 Tomcat 容器，此时外部的 Tomcat 又如何激活Spring boot?
+当我们将一个 Sping boot 的 web 应用打包为一个 war 包时，将其放置在一个外部的 Tomcat 容器的 webapp 目录下，随着我们启动 Tomcat 容器，Spring boot 应用也会被激活。这又是怎么做到的呢？
 
+一般想要达到这样的效果，需要做一些额外的配置，即必须编写一个 `SpringBootServletInitializer` 的子类，并复写其 configure() 方法。
+
+![1571712321255](./imgs/spring-boot-servlet-initializer-configure.png)
+
+其中，`SpringBootServletInitializer` 实现了 `WebApplicationInitializer` 接口。
+
+![1571712415433](./imgs/spring-boot-servlet-initializer.png)
+
+似曾相识，这个 `WebApplicationInitializer` 接口在第二节中就已经见过。从上面的描述中，我们知道一个 Tomcat 容器( Web服务器 )依据 Servlet3.0 中相应的规范，会扫描到`org.springframework.web.SpringServletContainerInitializer` 这个类，它使用了 `@HandlesTypes` 注解标注，即 `WebApplicationInitializer` 的子类都会得到实例化。
+
+所以 SpringBootServletInitializer 会被实例化，并会执行它的 onStartup() 放在，在这个方法中会创建 Spring 的容器。
+
+![1571712837495](./imgs/spring-boot-servlet-initializer-onstartup.png)
+
+并且在 createRootApplicationContext() 方法中，会调用 configure(builder) 方法。
+
+![1571713193429](./imgs/spring-boot-servlet-initializer-create-root-application-context.png)
+
+而 configure(builder) 这个方法被我们自己实现类中的方法覆写了，所以我们自己的configure(builder) 会执行，在这个方法执行的过程中，将该应用的启动程序传入。然后在后面的步骤中，激活了 Spring boot 容器。
+
+最后，考虑这种情形情形下，调用顺序又是如何？Tomcat 驱动 Spring boot。
+
+
+
+> Spring boot 的出现，极大的简化了开发。这种简化并不代表着轻松或容易掌握，反而由于 Spring boot 对一些底层支持的封装屏蔽，容易产生一种云深不知处的困惑。对于读者，我自己感觉总是需要找到 Spring 与底层契合的点，往往这些契合的点，会给我们理解框架带来一些启示，例如 Spring Web 与 Servlet 3.0 新特性的契合。
+
+
+
+> @date 2019/10/19
+>
+> @update 2019/10/22
