@@ -106,7 +106,7 @@ public class Bicycle {
 
 ### 初识 `BeanPostProcessor`
 
-`BeanPostProcessor` 可以译为Bean的后置处理器，可以在Bean实例化完成，初始化前后做一些控制等。这是Spring中非常重要的一个机制，很多的功能都是依赖于和这个机制。这里需要注意的一点是，Bean的实例化和初始化是不一样的，实例化是Bean的构造，属性赋值等；初始化是指Bean已经创建(构造)了，再做的一些init工作，这个init的方法，就是使用上面三种方法之一定义的初始化。
+`BeanPostProcessor` 可以译为Bean的后置处理器，可以在Bean实例化完成，初始化前后做一些控制等。这是Spring中非常重要的一个机制，很多的功能都是依赖于这个机制。这里需要注意的一点是，Bean的实例化和初始化是不一样的，实例化是Bean的构造，属性赋值等；初始化是指Bean已经创建(构造)了，再做的一些init工作，这个init的方法，就是使用上面三种方法之一定义的初始化。
 
 现在，我们首先简单地了解一下`BeanPostProcessor`接口以及这个接口的一个子接口 `InstantiationAwareBeanPostProcessor`。
 
